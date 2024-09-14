@@ -1,0 +1,34 @@
+services:
+  tunnel:
+    image: cloudflare/cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token <CLOUDFARE_TOKEN> 
+
+
+  nextcloud-aio-mastercontainer:
+    image: nextcloud/all-in-one:latest
+    init: true
+    restart: always
+    container_name: nextcloud-aio-mastercontainer 
+    volumes:
+      - nextcloud_aio_mastercontainer:/mnt/docker-aio-config 
+      - /var/run/docker.sock:/var/run/docker.sock:ro 
+      - <EXTERNAL_STORAGE_LOCATION>:<EXTERNAL_STORAGE_LOCATION> # Optional if you want to add external storage like hard drive
+    network_mode: bridge 
+    ports:
+      - 8080:8080
+    environment: 
+      APACHE_PORT: 11000 
+      SKIP_DOMAIN_VALIDATION: "true"
+      APACHE_IP_BINDING: <INTERNAL_ROUTER_IP> # If possible go to your router setting to reserve this IP for this device
+
+volumes: 
+  nextcloud_aio_mastercontainer:
+    name: nextcloud_aio_mastercontainer 
+  nextcloud_aio_backupdir:
+    name: nextcloud_aio_backupdir
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: <BACKUP_LOCATION>
